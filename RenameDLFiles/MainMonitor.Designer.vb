@@ -68,7 +68,7 @@ Partial Class MainMonitor
         ' 
         ' txtLog
         ' 
-        txtLog.Font = New Font("Segoe UI", 8.25F, FontStyle.Regular, GraphicsUnit.Point, CByte(0))
+        txtLog.Font = New Font("Arial", 6.75F, FontStyle.Regular, GraphicsUnit.Point, CByte(0))
         txtLog.Location = New Point(6, 229)
         txtLog.Margin = New Padding(3, 2, 3, 2)
         txtLog.MaxLength = 10240000
