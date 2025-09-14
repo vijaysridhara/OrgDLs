@@ -285,8 +285,9 @@ Partial Class MainMonitor
         Controls.Add(txtPath)
         Controls.Add(butExit)
         Controls.Add(butDirectory)
-        FormBorderStyle = FormBorderStyle.FixedToolWindow
+        FormBorderStyle = FormBorderStyle.FixedSingle
         Margin = New Padding(3, 2, 3, 2)
+        MaximizeBox = False
         Name = "MainMonitor"
         StartPosition = FormStartPosition.CenterScreen
         Text = "Monitor files"
