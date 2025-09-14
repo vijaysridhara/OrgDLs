@@ -214,7 +214,7 @@ Partial Class MainMonitor
         cboFileCat.DropDownStyle = ComboBoxStyle.DropDownList
         cboFileCat.Enabled = False
         cboFileCat.FormattingEnabled = True
-        cboFileCat.Items.AddRange(New Object() {"Any file", "Documents", "Executables", "Image files", "PDF Files", "Spreadsheets", "Text files", "Zip files"})
+        cboFileCat.Items.AddRange(New Object() {"Any file", "Documents", "Executables", "Image files", "PDF files", "Spreadsheets", "Text files", "Zip files"})
         cboFileCat.Location = New Point(105, 50)
         cboFileCat.Margin = New Padding(3, 2, 3, 2)
         cboFileCat.Name = "cboFileCat"
