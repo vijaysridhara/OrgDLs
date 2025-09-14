@@ -74,9 +74,9 @@ Partial Class MainMonitor
         ' 
         ' ttNumber
         ' 
-        ttNumber.Location = New Point(494, 100)
+        ttNumber.Location = New Point(430, 100)
         ttNumber.Name = "ttNumber"
-        ttNumber.Size = New Size(91, 27)
+        ttNumber.Size = New Size(63, 27)
         ttNumber.TabIndex = 11
         ttNumber.Text = "1"
         ttNumber.TextAlign = HorizontalAlignment.Right
@@ -86,9 +86,9 @@ Partial Class MainMonitor
         Label1.AutoSize = True
         Label1.Location = New Point(367, 103)
         Label1.Name = "Label1"
-        Label1.Size = New Size(121, 20)
+        Label1.Size = New Size(57, 20)
         Label1.TabIndex = 10
-        Label1.Text = "Starrt &numbering"
+        Label1.Text = "Start a&t"
         ' 
         ' chkStart
         ' 
@@ -128,14 +128,14 @@ Partial Class MainMonitor
         ' 
         cboCategories.DropDownStyle = ComboBoxStyle.DropDownList
         cboCategories.FormattingEnabled = True
-        cboCategories.Location = New Point(79, 100)
+        cboCategories.Location = New Point(122, 100)
         cboCategories.Name = "cboCategories"
-        cboCategories.Size = New Size(279, 28)
+        cboCategories.Size = New Size(236, 28)
         cboCategories.TabIndex = 9
         ' 
         ' butNEw
         ' 
-        butNEw.Location = New Point(457, 133)
+        butNEw.Location = New Point(367, 133)
         butNEw.Name = "butNEw"
         butNEw.Size = New Size(126, 42)
         butNEw.TabIndex = 12
@@ -169,9 +169,9 @@ Partial Class MainMonitor
         Label2.AutoSize = True
         Label2.Location = New Point(4, 100)
         Label2.Name = "Label2"
-        Label2.Size = New Size(69, 20)
+        Label2.Size = New Size(112, 20)
         Label2.TabIndex = 8
-        Label2.Text = "Ca&tegory"
+        Label2.Text = "&Active category"
         ' 
         ' chkRename
         ' 
@@ -199,16 +199,16 @@ Partial Class MainMonitor
         cboFileCat.DropDownStyle = ComboBoxStyle.DropDownList
         cboFileCat.FormattingEnabled = True
         cboFileCat.Items.AddRange(New Object() {"Any file", "Documents", "Executables", "Image files", "PDF Files", "Spreadsheets", "Text files", "Zip files"})
-        cboFileCat.Location = New Point(79, 141)
+        cboFileCat.Location = New Point(122, 141)
         cboFileCat.Name = "cboFileCat"
-        cboFileCat.Size = New Size(279, 28)
+        cboFileCat.Size = New Size(236, 28)
         cboFileCat.Sorted = True
         cboFileCat.TabIndex = 9
         ' 
         ' Label4
         ' 
         Label4.AutoSize = True
-        Label4.Location = New Point(4, 144)
+        Label4.Location = New Point(12, 144)
         Label4.Name = "Label4"
         Label4.Size = New Size(40, 20)
         Label4.TabIndex = 8
