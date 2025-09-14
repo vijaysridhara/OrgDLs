@@ -26,20 +26,27 @@ Public Class MainMonitor
         End While
         Return st
     End Function
-    Dim validExtensions() As String = {}
+
     Private Sub flW_Created(sender As Object, e As FileSystemEventArgs)
         Try
-
+            If cboCategories.Items.Count = 0 Then Exit Sub
             Dim srcPath As String = e.FullPath
             Dim fext As String = IO.Path.GetExtension(srcPath).ToLower
-            If (validExtensions.Contains(fext) Or validExtensions.Count = 0) And IO.File.Exists(srcPath) Then
-                Threading.Thread.Sleep(500)
 
-                If curCat Is Nothing Then Exit Sub
-                curCat.SaveFile(srcPath)
-                isFileCreated = True
-            End If
-
+            Dim validExtensions() As String = {}
+            '''Check all categories
+            For Each k As String In catColl.Keys
+                Dim c As Category = catColl(k)
+                If c.IsActive = False Then Continue For
+                validExtensions = validExtensions.Union(c.AllowedTypes).ToArray
+                If (validExtensions.Contains(fext) Or validExtensions.Count = 0) And IO.File.Exists(srcPath) Then
+                    If chkVerbose.Checked Then msgQueue.Enqueue("File qualified for category " & c.Name & " for extension " & fext & " for file " & e.FullPath & ". Processing...")
+                    Threading.Thread.Sleep(500)
+                    c.SaveFile(srcPath)
+                    isFileCreated = True
+                End If
+            Next
+            If chkVerbose.Checked Then msgQueue.Enqueue("No category qualified for extension " & fext & " for file " & e.FullPath)
 
             'Dim srcPath As String = e.FullPath
             'Threading.Thread.Sleep(500)
@@ -97,6 +104,7 @@ Public Class MainMonitor
     End Sub
     Private Sub MainMonitor_Load(sender As Object, e As EventArgs) Handles Me.Load
 
+        chkVerbose.Checked = My.Settings.Verbose
         txtPath.Text = My.Settings.FolderMonitor
 
     End Sub
@@ -106,6 +114,9 @@ Public Class MainMonitor
             Dim DirName As String = IO.Path.GetFileName(pth)
             Dim ourPattern = patt.Replace("#CATEGORY#", DirName)
             Dim fls() As String = IO.Directory.GetFiles(pth, "*.*")
+            If chkVerbose.Checked Then
+                Log("Looking for files in " & pth & " with pattern " & ourPattern)
+            End If
             Dim maxSeq As Integer = 0
             Dim bufSeq As Integer = 0
             For Each fl As String In fls
@@ -154,6 +165,7 @@ Public Class MainMonitor
             Return maxSeq
         Catch ex As Exception
             de(ex)
+            Return 0
         End Try
     End Function
     Dim patt As String = "#CATEGORY#_([0-9]+)"
@@ -171,6 +183,9 @@ Public Class MainMonitor
             Dim dirs() As String = IO.Directory.GetDirectories(txtPath.Text)
 
             For Each d As String In dirs
+                If chkVerbose.Checked Then
+                    Log("Found category folder: " & d)
+                End If
                 Dim lseq As Integer = GetLastSeq(d)
                 Dim cat As New Category(d, lseq)
                 cat.Name = IO.Path.GetFileName(d)
@@ -178,22 +193,27 @@ Public Class MainMonitor
                 AddHandler cat.CategoryMessage, AddressOf CatMessageARrived
                 AddHandler cat.SeqNumberChanged, AddressOf CatSeqChanged
             Next
+
             Dim cl As Specialized.StringCollection = My.Settings.Categories
+
             If cl IsNot Nothing Then
                 For Each c As String In cl
                     Dim elems() As String = c.Split(":")
                     If catColl.ContainsKey(elems(0)) Then
                         catColl(elems(0)).FileType = elems(1)
+                        catColl(elems(0)).UseTimeStamp = CBool(elems(2))
+                        catColl(elems(0)).OverWrite = CBool(elems(3))
+                        catColl(elems(0)).IsActive = CBool(elems(4))
                     End If
-
+                    txtLog.AppendText(catColl(elems(0)).Name & " is " & IIf(catColl(elems(0)).IsActive, " ACTIVE", " INACTIVE") & vbCrLf)
                 Next
             End If
             cboCategories.Items.AddRange(catColl.Keys.ToArray)
-                If cboCategories.Items.Count > 0 Then
-                    cboCategories.SelectedIndex = 0
-                End If
-            Else
-                chkStart.Enabled = False
+            If cboCategories.Items.Count > 0 Then
+                cboCategories.SelectedIndex = 0
+            End If
+        Else
+            chkStart.Enabled = False
         End If
 
     End Sub
@@ -245,10 +265,13 @@ startNaming:
             cat.Name = catName
             cat.UseTimeStamp = chkUseTimestamp.Checked
             cat.OverWrite = chkOverwritefiles.Checked
-            cat.Verbose = chkVerbose.Checked
+
             catColl.Add(cat.Name, cat)
             cboCategories.Items.Add(cat.Name)
             cboCategories.SelectedItem = cat.Name
+            If chkVerbose.Checked Then
+                Log("Created new category and folder " & cat.Name)
+            End If
             AddHandler cat.CategoryMessage, AddressOf CatMessageARrived
             AddHandler cat.SeqNumberChanged, AddressOf CatSeqChanged
         Catch ex As Exception
@@ -270,36 +293,61 @@ startNaming:
     End Sub
 
     Private Sub chkUseTimestamp_CheckedChanged(sender As Object, e As EventArgs) Handles chkUseTimestamp.CheckedChanged
-        For Each c As Category In catColl.Values
-            c.UseTimeStamp = chkUseTimestamp.Checked
-        Next
+        If curCat Is Nothing Then Exit Sub
+        If initializing Then Exit Sub
+        curCat.UseTimeStamp = chkUseTimestamp.Checked
+        If chkVerbose.Checked Then
+            Log("" & curCat.Name & " is set to " & IIf(curCat.UseTimeStamp, " USE TIMESTAMP", " NO TIMESTAMP"))
+
+        End If
     End Sub
 
     Private Sub chkOverwritefiles_CheckedChanged(sender As Object, e As EventArgs) Handles chkOverwritefiles.CheckedChanged
-        For Each c As Category In catColl.Values
-            c.OverWrite = chkOverwritefiles.Checked
-        Next
+        If curCat Is Nothing Then Exit Sub
+        If initializing Then Exit Sub
+        curCat.OverWrite = chkOverwritefiles.Checked
+        If chkVerbose.Checked Then
+            Log(curCat.Name & " is set to " & IIf(curCat.OverWrite, " OVERWRITE", " NO OVERWRITE"))
+        End If
     End Sub
 
     Dim curCat As Category
+    Dim initializing As Boolean = False
     Private Sub ComboBox1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboCategories.SelectedIndexChanged
         If cboCategories.SelectedIndex = -1 Then
             curCat = Nothing
+            chkMakeAllothersInactive.Enabled = False
+            cboFileCat.Enabled = False
+            chkRename.Enabled = False
+            chkOverwritefiles.Enabled = False
+            chkUseTimestamp.Enabled = False
+            ttNumber.Enabled = False
+            chkIsActive.Enabled = False
             Exit Sub
         End If
+        initializing = True
+        cboFileCat.Enabled = True
+        chkRename.Enabled = True
+        chkOverwritefiles.Enabled = True
+        chkUseTimestamp.Enabled = True
+        chkIsActive.Enabled = True
+        chkMakeAllothersInactive.Enabled = True
         curCat = catColl(cboCategories.SelectedItem)
         cboFileCat.SelectedItem = curCat.FileType
-        validExtensions = curCat.AllowedTypes.ToArray
-
+        chkMakeAllothersInactive.Checked = False
+        chkOverwritefiles.Checked = curCat.OverWrite
+        chkRename.Checked = curCat.Rename
+        chkUseTimestamp.Checked = curCat.UseTimeStamp
+        chkIsActive.Checked = curCat.IsActive
         ttNumber.Text = curCat.LastSeq
+        initializing = False
     End Sub
 
     Private Sub MainMonitor_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
         Dim cl As New Specialized.StringCollection
         For Each cat As Category In catColl.Values
 
-            cl.Add(cat.Name & ":" & cat.FileType)
-
+            cl.Add(cat.Name & ":" & cat.FileType & ":" & cat.UseTimeStamp & ":" & cat.OverWrite & ":" & cat.IsActive)
             RemoveHandler cat.CategoryMessage, AddressOf CatMessageARrived
             RemoveHandler cat.SeqNumberChanged, AddressOf CatSeqChanged
         Next
@@ -309,21 +357,61 @@ startNaming:
     End Sub
 
     Private Sub chkVerbose_CheckedChanged(sender As Object, e As EventArgs) Handles chkVerbose.CheckedChanged
-        For Each c In catColl.Values
-            c.Verbose = chkVerbose.Checked
-        Next
+
+        My.Settings.Verbose = chkVerbose.Checked
+        My.Settings.Save()
     End Sub
 
     Private Sub chkRename_CheckedChanged(sender As Object, e As EventArgs) Handles chkRename.CheckedChanged
-        For Each c In catColl.Values
-            c.Rename = chkRename.Checked
-        Next
-        ttNumber.Enabled = chkRename.Checked And Not chkUseTimestamp.Checked
+        If curCat Is Nothing Then Exit Sub
+        If initializing Then Exit Sub
+        curCat.Rename = chkRename.Checked
+        ttNumber.Enabled = curCat.Rename And Not curCat.UseTimeStamp
+        If chkVerbose.Checked Then
+            Log(curCat.Name & " is set to " & IIf(curCat.Rename, " RENAME", " NO RENAME"))
+        End If
     End Sub
 
     Private Sub cboFileCat_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboFileCat.SelectedIndexChanged
         If curCat Is Nothing Then Exit Sub
+        If initializing Then Exit Sub
         curCat.FileType = cboFileCat.SelectedItem
-        validExtensions = curCat.AllowedTypes.ToArray
+
+    End Sub
+
+    Private Sub ttNumber_TextChanged(sender As Object, e As EventArgs) Handles ttNumber.TextChanged
+        If curCat Is Nothing Then Exit Sub
+        If initializing Then Exit Sub
+        Dim n As Integer = 0
+        If Integer.TryParse(ttNumber.Text, n) Then
+            curCat.LastSeq = n
+        End If
+
+    End Sub
+
+    Private Sub chkMakeAllothersInactive_CheckedChanged(sender As Object, e As EventArgs) Handles chkMakeAllothersInactive.CheckedChanged
+        If curCat Is Nothing Then Exit Sub
+        If initializing Then Exit Sub
+        For Each c As Category In catColl.Values
+            If c.Name = cboCategories.SelectedItem Then
+                Continue For
+            Else
+                If c.FileType = curCat.FileType Then
+                    c.IsActive = Not chkMakeAllothersInactive.Checked
+                    If c.IsActive = False Then
+                        Log(c.Name & " is set to INACTIVE")
+                    End If
+                End If
+            End If
+        Next
+    End Sub
+
+    Private Sub chkIsActive_CheckedChanged(sender As Object, e As EventArgs) Handles chkIsActive.CheckedChanged
+        If curCat Is Nothing Then Exit Sub
+        If initializing Then Exit Sub
+        curCat.IsActive = chkIsActive.Checked
+        If chkVerbose.Checked Then
+            Log(curCat.Name & " is set to " & IIf(curCat.IsActive, " ACTIVE", " INACTIVE"))
+        End If
     End Sub
 End Class

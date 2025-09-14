@@ -7,11 +7,21 @@ Public Class Category
     Private _UseTimeStamp As Boolean
     Private _DirPath As String
     Private _OverWrite As Boolean
-    Private _Verbose As Boolean = True
+
     Private _Rename As Boolean = True
     Private _FileType As String = "Any file"
     Private _AllowedTypes As New List(Of String)
+    Private _IsActive As Boolean = True
     Event SeqNumberChanged(cat As String, seq As Integer)
+
+    Property IsActive As Boolean
+        Get
+            Return _IsActive
+        End Get
+        Set
+            _IsActive = Value
+        End Set
+    End Property
 
     Property FileType As String
         Get
@@ -114,14 +124,6 @@ Public Class Category
         Return st
     End Function
 
-    Property Verbose As Boolean
-        Get
-            Return _Verbose
-        End Get
-        Set
-            _Verbose = Value
-        End Set
-    End Property
 
     Event CategoryMessage(msg As String, isError As Boolean)
     Public Sub SaveFile(source As String)
@@ -137,7 +139,7 @@ Public Class Category
             End If
             My.Computer.FileSystem.MoveFile(source, newFilename, OverWrite)
             RaiseEvent SeqNumberChanged(Name, LastSeq)
-            If Verbose Then RaiseEvent CategoryMessage("Moved file " & source & " to " & newFilename, False)
+            RaiseEvent CategoryMessage("Moved file " & source & " to " & newFilename, False)
         Catch ex As Exception
             RaiseEvent CategoryMessage(ex.Message, True)
         End Try
