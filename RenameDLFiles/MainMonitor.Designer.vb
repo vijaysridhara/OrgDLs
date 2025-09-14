@@ -42,7 +42,6 @@ Partial Class MainMonitor
         cboFileCat = New ComboBox()
         Label4 = New Label()
         chkIsActive = New CheckBox()
-        chkMakeAllothersInactive = New CheckBox()
         GroupBox1 = New GroupBox()
         Label5 = New Label()
         GroupBox1.SuspendLayout()
@@ -244,25 +243,11 @@ Partial Class MainMonitor
         chkIsActive.Text = "&Is active"
         chkIsActive.UseVisualStyleBackColor = True
         ' 
-        ' chkMakeAllothersInactive
-        ' 
-        chkMakeAllothersInactive.Appearance = Appearance.Button
-        chkMakeAllothersInactive.Enabled = False
-        chkMakeAllothersInactive.Location = New Point(375, 80)
-        chkMakeAllothersInactive.Margin = New Padding(3, 2, 3, 2)
-        chkMakeAllothersInactive.Name = "chkMakeAllothersInactive"
-        chkMakeAllothersInactive.Size = New Size(89, 38)
-        chkMakeAllothersInactive.TabIndex = 11
-        chkMakeAllothersInactive.Text = "&Make others inactive"
-        chkMakeAllothersInactive.TextAlign = ContentAlignment.MiddleCenter
-        chkMakeAllothersInactive.UseVisualStyleBackColor = True
-        ' 
         ' GroupBox1
         ' 
         GroupBox1.Controls.Add(butNEw)
         GroupBox1.Controls.Add(cboFileCat)
         GroupBox1.Controls.Add(cboCategories)
-        GroupBox1.Controls.Add(chkMakeAllothersInactive)
         GroupBox1.Controls.Add(chkIsActive)
         GroupBox1.Controls.Add(chkRename)
         GroupBox1.Controls.Add(chkUseTimestamp)
@@ -330,7 +315,6 @@ Partial Class MainMonitor
     Friend WithEvents cboFileCat As ComboBox
     Friend WithEvents Label4 As Label
     Friend WithEvents chkIsActive As CheckBox
-    Friend WithEvents chkMakeAllothersInactive As CheckBox
     Friend WithEvents GroupBox1 As GroupBox
     Friend WithEvents Label5 As Label
 

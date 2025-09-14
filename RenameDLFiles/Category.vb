@@ -19,7 +19,11 @@ Public Class Category
             Return _IsActive
         End Get
         Set
+            If IsActive <> Value Then
+                RaiseEvent CategoryMessage("[" & Name & "]" & IIf(Value, "-ACTIVATED", "-DEACTIVATED"), False)
+            End If
             _IsActive = Value
+
         End Set
     End Property
 

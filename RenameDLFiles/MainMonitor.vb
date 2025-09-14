@@ -81,7 +81,7 @@ Public Class MainMonitor
         If IO.Path.Exists(txtPath.Text) Then
             txtLog.Clear()
             isFileCreated = False
-            Timer1.Start()
+
             flW = New FileSystemWatcher()
             flW.Filters.Clear()
             flW.Path = txtPath.Text
@@ -106,7 +106,7 @@ Public Class MainMonitor
 
         chkVerbose.Checked = My.Settings.Verbose
         txtPath.Text = My.Settings.FolderMonitor
-
+        Timer1.Start()
     End Sub
 
     Private Function GetLastSeq(pth As String) As Integer
@@ -316,7 +316,7 @@ startNaming:
     Private Sub ComboBox1_SelectedIndexChanged(sender As Object, e As EventArgs) Handles cboCategories.SelectedIndexChanged
         If cboCategories.SelectedIndex = -1 Then
             curCat = Nothing
-            chkMakeAllothersInactive.Enabled = False
+
             cboFileCat.Enabled = False
             chkRename.Enabled = False
             chkOverwritefiles.Enabled = False
@@ -331,10 +331,10 @@ startNaming:
         chkOverwritefiles.Enabled = True
         chkUseTimestamp.Enabled = True
         chkIsActive.Enabled = True
-        chkMakeAllothersInactive.Enabled = True
+
         curCat = catColl(cboCategories.SelectedItem)
         cboFileCat.SelectedItem = curCat.FileType
-        chkMakeAllothersInactive.Checked = False
+
         chkOverwritefiles.Checked = curCat.OverWrite
         chkRename.Checked = curCat.Rename
         chkUseTimestamp.Checked = curCat.UseTimeStamp
@@ -389,29 +389,23 @@ startNaming:
 
     End Sub
 
-    Private Sub chkMakeAllothersInactive_CheckedChanged(sender As Object, e As EventArgs) Handles chkMakeAllothersInactive.CheckedChanged
-        If curCat Is Nothing Then Exit Sub
-        If initializing Then Exit Sub
-        For Each c As Category In catColl.Values
-            If c.Name = cboCategories.SelectedItem Then
-                Continue For
-            Else
-                If c.FileType = curCat.FileType Then
-                    c.IsActive = Not chkMakeAllothersInactive.Checked
-                    If c.IsActive = False Then
-                        Log(c.Name & " is set to INACTIVE")
-                    End If
-                End If
-            End If
-        Next
-    End Sub
+
 
     Private Sub chkIsActive_CheckedChanged(sender As Object, e As EventArgs) Handles chkIsActive.CheckedChanged
         If curCat Is Nothing Then Exit Sub
         If initializing Then Exit Sub
         curCat.IsActive = chkIsActive.Checked
-        If chkVerbose.Checked Then
-            Log(curCat.Name & " is set to " & IIf(curCat.IsActive, " ACTIVE", " INACTIVE"))
+        If chkIsActive.Checked Then
+            For Each c As Category In catColl.Values
+                If c.Name = curCat.Name Then
+                    Continue For
+                Else
+                    If c.FileType = curCat.FileType Then
+                        c.IsActive = False
+                    End If
+                End If
+            Next
         End If
+
     End Sub
 End Class
