@@ -296,6 +296,7 @@ startNaming:
         If curCat Is Nothing Then Exit Sub
         If initializing Then Exit Sub
         curCat.UseTimeStamp = chkUseTimestamp.Checked
+        ttNumber.Enabled = curCat.Rename And Not curCat.UseTimeStamp
         If chkVerbose.Checked Then
             Log("" & curCat.Name & " is set to " & IIf(curCat.UseTimeStamp, " USE TIMESTAMP", " NO TIMESTAMP"))
 
@@ -340,6 +341,7 @@ startNaming:
         chkUseTimestamp.Checked = curCat.UseTimeStamp
         chkIsActive.Checked = curCat.IsActive
         ttNumber.Text = curCat.LastSeq
+        ttNumber.Enabled = curCat.Rename And Not curCat.UseTimeStamp
         initializing = False
     End Sub
 
