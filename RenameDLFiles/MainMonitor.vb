@@ -212,10 +212,17 @@ Public Class MainMonitor
     Dim patt As String = "#CATEGORY#_([0-9]+)"
 
     Private Sub txtPath_TextChanged(sender As Object, e As EventArgs) Handles txtPath.TextChanged
+        If chkStart.Checked Then
+            chkStart.Checked = False
+        ElseIf isMonitoring Then
+            'This is same as above case, but just to be sure
+            StopMonitoring()
+        End If
         For Each cat As Category In catColl.Values
             RemoveHandler cat.CategoryMessage, AddressOf CatMessageARrived
             RemoveHandler cat.SeqNumberChanged, AddressOf CatSeqChanged
         Next
+
         catColl.Clear()
         curCat = Nothing
         cboCategories.Items.Clear()
@@ -424,6 +431,9 @@ startNaming:
             Me.Hide()
             tlstpShow.Text = "Show"
             Exit Sub
+        End If
+        If isMonitoring Then
+            StopMonitoring()
         End If
         Dim cl As New Specialized.StringCollection
         For Each cat As Category In catColl.Values
