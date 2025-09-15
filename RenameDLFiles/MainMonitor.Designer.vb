@@ -50,8 +50,8 @@ Partial Class MainMonitor
         tlstpShow = New ToolStripMenuItem()
         tlstpNewCat = New ToolStripMenuItem()
         tlstpStartStop = New ToolStripMenuItem()
-        tlstpExit = New ToolStripMenuItem()
         ActiveCategoriesToolStripMenuItem = New ToolStripMenuItem()
+        tlstpExit = New ToolStripMenuItem()
         GroupBox1.SuspendLayout()
         ctxMain.SuspendLayout()
         SuspendLayout()
@@ -120,7 +120,7 @@ Partial Class MainMonitor
         butExit.Name = "butExit"
         butExit.Size = New Size(141, 48)
         butExit.TabIndex = 8
-        butExit.Text = "E&xit"
+        butExit.Text = "&Hide"
         butExit.UseVisualStyleBackColor = True
         ' 
         ' chkOverwritefiles
@@ -277,37 +277,37 @@ Partial Class MainMonitor
         ' 
         ctxMain.Items.AddRange(New ToolStripItem() {tlstpShow, tlstpNewCat, tlstpStartStop, ActiveCategoriesToolStripMenuItem, tlstpExit})
         ctxMain.Name = "ctxMain"
-        ctxMain.Size = New Size(181, 136)
+        ctxMain.Size = New Size(165, 114)
         ' 
         ' tlstpShow
         ' 
         tlstpShow.Name = "tlstpShow"
-        tlstpShow.Size = New Size(180, 22)
+        tlstpShow.Size = New Size(164, 22)
         tlstpShow.Text = "&Show"
         ' 
         ' tlstpNewCat
         ' 
         tlstpNewCat.Name = "tlstpNewCat"
-        tlstpNewCat.Size = New Size(180, 22)
+        tlstpNewCat.Size = New Size(164, 22)
         tlstpNewCat.Text = "&New category"
         ' 
         ' tlstpStartStop
         ' 
         tlstpStartStop.Name = "tlstpStartStop"
-        tlstpStartStop.Size = New Size(180, 22)
+        tlstpStartStop.Size = New Size(164, 22)
         tlstpStartStop.Text = "&Start monitoring"
-        ' 
-        ' tlstpExit
-        ' 
-        tlstpExit.Name = "tlstpExit"
-        tlstpExit.Size = New Size(180, 22)
-        tlstpExit.Text = "E&xit"
         ' 
         ' ActiveCategoriesToolStripMenuItem
         ' 
         ActiveCategoriesToolStripMenuItem.Name = "ActiveCategoriesToolStripMenuItem"
-        ActiveCategoriesToolStripMenuItem.Size = New Size(180, 22)
+        ActiveCategoriesToolStripMenuItem.Size = New Size(164, 22)
         ActiveCategoriesToolStripMenuItem.Text = "Active categories"
+        ' 
+        ' tlstpExit
+        ' 
+        tlstpExit.Name = "tlstpExit"
+        tlstpExit.Size = New Size(164, 22)
+        tlstpExit.Text = "E&xit"
         ' 
         ' MainMonitor
         ' 

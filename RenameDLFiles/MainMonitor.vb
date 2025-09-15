@@ -35,21 +35,7 @@ Public Class MainMonitor
             Dim srcPath As String = e.FullPath
             Dim fext As String = IO.Path.GetExtension(srcPath).ToLower
 
-            Dim validExtensions() As String = {}
-            '''Check all categories
-            For Each k As String In catColl.Keys
-                Dim c As Category = catColl(k)
-                If c.IsActive = False Then Continue For
-                validExtensions = validExtensions.Union(c.AllowedTypes).ToArray
-                If (validExtensions.Contains(fext) Or validExtensions.Count = 0) And IO.File.Exists(srcPath) Then
-                    If chkVerbose.Checked Then msgQueue.Enqueue("File qualified for category " & c.Name & " for extension " & fext & " for file " & e.FullPath & ". Processing...")
-                    Threading.Thread.Sleep(500)
-                    c.SaveFile(srcPath)
-                    isFileCreated = True
-                    Exit Sub
-                End If
-            Next
-            If chkVerbose.Checked Then msgQueue.Enqueue("No category qualified for extension " & fext & " for file " & e.FullPath)
+            CheckandProcessthisFile(e.FullPath, fext)
 
             'Dim srcPath As String = e.FullPath
             'Threading.Thread.Sleep(500)
@@ -68,6 +54,27 @@ Public Class MainMonitor
             'End If
         Catch ex As Exception
             msgQueue.Enqueue(ex.Message & " " & e.FullPath)
+        End Try
+    End Sub
+    Private Sub CheckandProcessThisFile(filepath As String, fext As String, Optional force As Boolean = False)
+        Try
+            Dim validExtensions() As String = {}
+            '''Check all categories
+            For Each k As String In catColl.Keys
+                Dim c As Category = catColl(k)
+                If c.IsActive = False And force = False Then Continue For
+                validExtensions = validExtensions.Union(c.AllowedTypes).ToArray
+                If (validExtensions.Contains(fext) Or validExtensions.Count = 0) And IO.File.Exists(filepath) Then
+                    If chkVerbose.Checked Then msgQueue.Enqueue("File qualified for category " & c.Name & " for extension " & fext & " for file " & filepath & ". Processing...")
+                    Threading.Thread.Sleep(500)
+                    c.SaveFile(filepath)
+                    isFileCreated = True
+                    Exit Sub
+                End If
+            Next
+            If chkVerbose.Checked Then msgQueue.Enqueue("No category qualified for extension " & fext & " for file " & filepath)
+        Catch ex As Exception
+            msgQueue.Enqueue(ex.Message & "  " & filepath)
         End Try
     End Sub
     Private Sub StopMonitoring()
@@ -94,7 +101,9 @@ Public Class MainMonitor
 
             flW.EnableRaisingEvents = True
             lastNumber = CInt(ttNumber.Text)
+            AddHandler flW.Error, AddressOf flw_Error
             AddHandler flW.Created, AddressOf flW_Created
+
             Return True
         Else
             msgQueue.Enqueue("The directory doesn't exist ")
@@ -102,10 +111,15 @@ Public Class MainMonitor
         End If
 
     End Function
+    Private Sub flw_Error(sender As Object, e As ErrorEventArgs)
+        msgQueue.Enqueue("File system watcher error: " & e.GetException.Message)
+
+    End Sub
     Private Sub Log(msg As String)
-        txtLog.AppendText(msg & vbCrLf)
+        txtLog.AppendText("[" & Format(Date.Now, "yyyy-MM-dd HH:mm:ss") & "] " & msg & vbCrLf)
         txtLog.SelectionStart = txtLog.TextLength
         txtLog.ScrollToCaret()
+
     End Sub
     Dim isFirstLoad As Boolean = True
     Private Sub MainMonitor_Load(sender As Object, e As EventArgs) Handles Me.Load
@@ -227,11 +241,14 @@ Public Class MainMonitor
                 For Each c As String In cl
                     Dim elems() As String = c.Split(":")
                     If catColl.ContainsKey(elems(0)) Then
+                        catColl(elems(0)).INIT = True
                         catColl(elems(0)).FileType = elems(1)
-                        catColl(elems(0)).UseTimeStamp = CBool(elems(2))
-                        catColl(elems(0)).OverWrite = CBool(elems(3))
-                        catColl(elems(0)).IsActive = CBool(elems(4))
-                        txtLog.AppendText(catColl(elems(0)).Name & " is " & IIf(catColl(elems(0)).IsActive, " ACTIVE", " INACTIVE") & vbCrLf)
+                        catColl(elems(0)).Rename = CBool(elems(2))
+                        catColl(elems(0)).UseTimeStamp = CBool(elems(3))
+                        catColl(elems(0)).OverWrite = CBool(elems(4))
+                        catColl(elems(0)).IsActive = CBool(elems(5))
+                        msgQueue.Enqueue("[" & catColl(elems(0)).Name & "]" & IIf(catColl(elems(0)).IsActive, "-ACTIVATED", "-DEACTIVATED"))
+                        catColl(elems(0)).INIT = False
                     End If
 
                 Next
@@ -240,8 +257,25 @@ Public Class MainMonitor
             If cboCategories.Items.Count > 0 Then
                 cboCategories.SelectedIndex = 0
             End If
+            chkStart.Checked = True
         Else
             chkStart.Enabled = False
+        End If
+        Dim files() As String = IO.Directory.GetFiles(txtPath.Text, "*.*")
+        If files.Length > 0 Then
+            If MsgBox("There are " & files.Length & " files in the selected folder. They will be processed based on active categories", MsgBoxStyle.Question Or MsgBoxStyle.YesNo) = MsgBoxResult.No Then Exit Sub
+
+            'No force, get them into existing active categories
+            For Each fl As String In files
+                Dim ext As String = IO.Path.GetExtension(fl)
+                CheckandProcessThisFile(fl, ext.ToLower)
+            Next
+            files = IO.Directory.GetFiles(txtPath.Text, "*.*")
+            'Now force them to non active categories
+            For Each fl As String In files
+                Dim ext As String = IO.Path.GetExtension(fl)
+                CheckandProcessThisFile(fl, ext.ToLower, True)
+            Next
         End If
 
     End Sub
@@ -279,6 +313,13 @@ Public Class MainMonitor
         While msgQueue.Count > 0
             Log(msgQueue.Dequeue)
         End While
+        If String.IsNullOrEmpty(bubbleMessage) = False And chkVerbose.Checked Then
+            notIcon.BalloonTipTitle = "Cat: " & curCat.Name
+            notIcon.BalloonTipText = bubbleMessage
+            bubbleMessage = ""
+            notIcon.ShowBalloonTip(3000)
+
+        End If
     End Sub
 
     Private Sub Button1_Click_1(sender As Object, e As EventArgs) Handles butNEw.Click
@@ -306,8 +347,12 @@ startNaming:
             de(ex)
         End Try
     End Sub
+    Dim bubbleMessage As String = ""
     Private Sub CatMessageARrived(msg As String, isError As Boolean)
         msgQueue.Enqueue(IIf(isError, "[ERROR]", "") & msg)
+        If msg.StartsWith("Moved file") Then
+            bubbleMessage = msg
+        End If
     End Sub
     Private Sub CatSeqChanged(cat As String, seq As Integer)
         If curCat Is Nothing Then Exit Sub
@@ -383,7 +428,7 @@ startNaming:
         Dim cl As New Specialized.StringCollection
         For Each cat As Category In catColl.Values
 
-            cl.Add(cat.Name & ":" & cat.FileType & ":" & cat.UseTimeStamp & ":" & cat.OverWrite & ":" & cat.IsActive)
+            cl.Add(cat.Name & ":" & cat.FileType & ":" & cat.Rename & ":" & cat.UseTimeStamp & ":" & cat.OverWrite & ":" & cat.IsActive)
             RemoveHandler cat.CategoryMessage, AddressOf CatMessageARrived
             RemoveHandler cat.SeqNumberChanged, AddressOf CatSeqChanged
         Next
@@ -517,6 +562,14 @@ startNaming:
                 Log("Created new category and folder " & nc.NewCat.Name)
             End If
             cboCategories.Items.Add(nc.NewCat.Name)
+            If nc.NewCat.IsActive Then
+                For Each c As Category In catColl.Values
+                    If c Is nc.NewCat Then Continue For
+                    If c.FileType = nc.NewCat.FileType Then
+                        If c.IsActive Then c.IsActive = False
+                    End If
+                Next
+            End If
             cboCategories.SelectedItem = nc.NewCat.Name
         End If
     End Sub

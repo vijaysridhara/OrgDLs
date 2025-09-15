@@ -13,13 +13,13 @@ Public Class Category
     Private _AllowedTypes As New List(Of String)
     Private _IsActive As Boolean = True
     Event SeqNumberChanged(cat As String, seq As Integer)
-
+    Public INIT As Boolean
     Property IsActive As Boolean
         Get
             Return _IsActive
         End Get
         Set
-            If IsActive <> Value Then
+            If IsActive <> Value And INIT = False Then
                 RaiseEvent CategoryMessage("[" & Name & "]" & IIf(Value, "-ACTIVATED", "-DEACTIVATED"), False)
             End If
             _IsActive = Value
