@@ -8,7 +8,7 @@ Public Class Category
     Private _DirPath As String
     Private _OverWrite As Boolean
 
-    Private _Rename As Boolean = True
+    Private _Rename As Boolean = False
     Private _FileType As String = "Any file"
     Private _AllowedTypes As New List(Of String)
     Private _IsActive As Boolean = True
@@ -56,7 +56,7 @@ Public Class Category
             Case "Image files"
                 AllowedTypes.AddRange({".jpg", ".jpeg", ".bmp", ".png", ".gif", ".webp", ".tiff"})
             Case "Zip files"
-                AllowedTypes.AddRange({".zip", ".tar", ".war", ".gzip", ".7zip"})
+                AllowedTypes.AddRange({".zip", ".tar", ".war", ".gzip", ".7zip", ".bzip"})
             Case "Executables"
                 AllowedTypes.AddRange({".exe", ".bat", ".dll"})
         End Select

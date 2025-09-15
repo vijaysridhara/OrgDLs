@@ -12,6 +12,7 @@ Public Class MainMonitor
         If fb.ShowDialog = DialogResult.OK Then
             My.Settings.FolderMonitor = fb.SelectedPath
             My.Settings.Save()
+            txtLog.Clear()
             txtPath.Text = fb.SelectedPath
 
         End If
@@ -29,6 +30,7 @@ Public Class MainMonitor
 
     Private Sub flW_Created(sender As Object, e As FileSystemEventArgs)
         Try
+            If IO.Directory.Exists(e.FullPath) Then Exit Sub
             If cboCategories.Items.Count = 0 Then Exit Sub
             Dim srcPath As String = e.FullPath
             Dim fext As String = IO.Path.GetExtension(srcPath).ToLower
@@ -44,6 +46,7 @@ Public Class MainMonitor
                     Threading.Thread.Sleep(500)
                     c.SaveFile(srcPath)
                     isFileCreated = True
+                    Exit Sub
                 End If
             Next
             If chkVerbose.Checked Then msgQueue.Enqueue("No category qualified for extension " & fext & " for file " & e.FullPath)
@@ -73,13 +76,15 @@ Public Class MainMonitor
             flW.EnableRaisingEvents = False
             flW = Nothing
 
-            Timer1.Stop()
+
         End If
+        isMonitoring = False
     End Sub
     Dim msgQueue As New Queue(Of String)
+
     Private Function StartMonitoring() As Boolean
         If IO.Path.Exists(txtPath.Text) Then
-            txtLog.Clear()
+
             isFileCreated = False
 
             flW = New FileSystemWatcher()
@@ -102,13 +107,35 @@ Public Class MainMonitor
         txtLog.SelectionStart = txtLog.TextLength
         txtLog.ScrollToCaret()
     End Sub
+    Dim isFirstLoad As Boolean = True
     Private Sub MainMonitor_Load(sender As Object, e As EventArgs) Handles Me.Load
-
+        notIcon.Icon = Me.Icon
+        notIcon.ContextMenuStrip = ctxMain
         chkVerbose.Checked = My.Settings.Verbose
         txtPath.Text = My.Settings.FolderMonitor
         Timer1.Start()
-    End Sub
+        ShowActiveFolders()
 
+    End Sub
+    Private Sub ShowActiveFolders()
+        Dim txt As String = ""
+        For Each c As Category In catColl.Values
+            If c.IsActive Then
+                txt &= c.Name & " (" & c.FileType & ")" & vbCrLf
+            End If
+        Next
+        If String.IsNullOrEmpty(txt) Then
+            txt = "No active categories"
+        End If
+        If isMonitoring Then
+            notIcon.BalloonTipTitle = "Active categories (RUNNING)"
+        Else
+            notIcon.BalloonTipTitle = "Set categories (STOPPED)"
+        End If
+
+        notIcon.BalloonTipText = txt
+        notIcon.ShowBalloonTip(3000)
+    End Sub
     Private Function GetLastSeq(pth As String) As Integer
         Try
             Dim DirName As String = IO.Path.GetFileName(pth)
@@ -204,8 +231,9 @@ Public Class MainMonitor
                         catColl(elems(0)).UseTimeStamp = CBool(elems(2))
                         catColl(elems(0)).OverWrite = CBool(elems(3))
                         catColl(elems(0)).IsActive = CBool(elems(4))
+                        txtLog.AppendText(catColl(elems(0)).Name & " is " & IIf(catColl(elems(0)).IsActive, " ACTIVE", " INACTIVE") & vbCrLf)
                     End If
-                    txtLog.AppendText(catColl(elems(0)).Name & " is " & IIf(catColl(elems(0)).IsActive, " ACTIVE", " INACTIVE") & vbCrLf)
+
                 Next
             End If
             cboCategories.Items.AddRange(catColl.Keys.ToArray)
@@ -217,12 +245,13 @@ Public Class MainMonitor
         End If
 
     End Sub
-
+    Dim isMonitoring As Boolean = False
     Private Sub chkStart_CheckedChanged(sender As Object, e As EventArgs) Handles chkStart.CheckedChanged
         If chkStart.Checked Then
 
             If StartMonitoring() Then
                 Log("Started monitoring")
+                isMonitoring = True
                 butDirectory.Enabled = False
             Else
                 chkStart.Checked = False
@@ -239,6 +268,7 @@ Public Class MainMonitor
     End Sub
 
     Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
+        If isFirstLoad Then Me.Visible = False : isFirstLoad = False : tlstpShow.Text = "Show"
         If isFileCreated Then
             If curCat IsNot Nothing Then
                 ttNumber.Text = curCat.LastSeq
@@ -263,9 +293,7 @@ startNaming:
             MkDir(txtPath.Text & "\" & catName)
             Dim cat As New Category(txtPath.Text & "\" & catName, 0)
             cat.Name = catName
-            cat.UseTimeStamp = chkUseTimestamp.Checked
-            cat.OverWrite = chkOverwritefiles.Checked
-
+            cat.IsActive = True
             catColl.Add(cat.Name, cat)
             cboCategories.Items.Add(cat.Name)
             cboCategories.SelectedItem = cat.Name
@@ -346,6 +374,12 @@ startNaming:
     End Sub
 
     Private Sub MainMonitor_FormClosing(sender As Object, e As FormClosingEventArgs) Handles Me.FormClosing
+        If e.CloseReason = CloseReason.UserClosing Then
+            e.Cancel = True
+            Me.Hide()
+            tlstpShow.Text = "Show"
+            Exit Sub
+        End If
         Dim cl As New Specialized.StringCollection
         For Each cat As Category In catColl.Values
 
@@ -378,7 +412,17 @@ startNaming:
         If curCat Is Nothing Then Exit Sub
         If initializing Then Exit Sub
         curCat.FileType = cboFileCat.SelectedItem
-
+        If chkIsActive.Checked Then
+            For Each c As Category In catColl.Values
+                If c.Name = curCat.Name Then
+                    Continue For
+                Else
+                    If c.FileType = curCat.FileType Then
+                        c.IsActive = False
+                    End If
+                End If
+            Next
+        End If
     End Sub
 
     Private Sub ttNumber_TextChanged(sender As Object, e As EventArgs) Handles ttNumber.TextChanged
@@ -409,5 +453,112 @@ startNaming:
             Next
         End If
 
+    End Sub
+
+    Private Sub ctxMain_Opening(sender As Object, e As System.ComponentModel.CancelEventArgs) Handles ctxMain.Opening
+        If Me.Visible = False Then
+            tlstpShow.Text = "Show"
+        Else
+            tlstpShow.Text = "Hide"
+        End If
+        If String.IsNullOrEmpty(txtPath.Text) Then
+            notIcon.Text = "No folder selected to monitor"
+            tlstpStartStop.Enabled = False
+            tlstpNewCat.Enabled = False
+            If isMonitoring Then
+                StopMonitoring()
+            End If
+            Exit Sub
+        End If
+        If IO.Directory.Exists(txtPath.Text) = False Then
+
+            tlstpStartStop.Enabled = False
+            tlstpNewCat.Enabled = False
+            If isMonitoring Then
+                StopMonitoring()
+            End If
+            Exit Sub
+        End If
+        tlstpStartStop.Enabled = True
+        tlstpNewCat.Enabled = True
+        If isMonitoring Then
+
+            tlstpStartStop.Text = "Stop"
+
+        Else
+            tlstpStartStop.Text = "Start"
+
+        End If
+    End Sub
+
+    Private Sub tlstpShow_Click(sender As Object, e As EventArgs) Handles tlstpShow.Click
+        If Me.Visible Then
+            Me.Hide()
+            tlstpShow.Text = "Show"
+            Exit Sub
+        Else
+            Me.Show()
+            tlstpShow.Text = "Hide"
+        End If
+
+
+    End Sub
+
+    Private Sub notIcon_DoubleClick(sender As Object, e As EventArgs) Handles notIcon.DoubleClick
+        Me.Show()
+        tlstpShow.Text = "Hide"
+
+    End Sub
+
+    Private Sub tlstpNewCat_Click(sender As Object, e As EventArgs) Handles tlstpNewCat.Click
+        Dim nc As New NewCat(txtPath.Text, catColl)
+        If nc.ShowDialog = DialogResult.OK Then
+            If chkVerbose.Checked Then
+                Log("Created new category and folder " & nc.NewCat.Name)
+            End If
+            cboCategories.Items.Add(nc.NewCat.Name)
+            cboCategories.SelectedItem = nc.NewCat.Name
+        End If
+    End Sub
+
+    Private Sub tlstpStartStop_Click(sender As Object, e As EventArgs) Handles tlstpStartStop.Click
+        If isMonitoring Then
+            chkStart.Checked = False
+        Else
+            chkStart.Checked = True
+        End If
+    End Sub
+
+    Private Sub notIcon_MouseMove(sender As Object, e As MouseEventArgs) Handles notIcon.MouseMove
+        If String.IsNullOrEmpty(txtPath.Text) Then
+            notIcon.Text = "No folder selected to monitor"
+            Exit Sub
+        End If
+        If IO.Directory.Exists(txtPath.Text) = False Then
+            notIcon.Text = "The folder to monitor doesn't exist"
+            Exit Sub
+        End If
+        If isMonitoring Then
+            notIcon.Text = "Monitoring " & txtPath.Text
+        Else
+            notIcon.Text = "Monitoring stopped"
+        End If
+
+    End Sub
+
+    Private Sub MainMonitor_Closed(sender As Object, e As EventArgs) Handles Me.Closed
+
+    End Sub
+
+    Private Sub MainMonitor_FormClosed(sender As Object, e As FormClosedEventArgs) Handles Me.FormClosed
+
+    End Sub
+
+    Private Sub tlstpExit_Click(sender As Object, e As EventArgs) Handles tlstpExit.Click
+        Application.Exit()
+    End Sub
+
+    Private Sub ActiveCategoriesToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ActiveCategoriesToolStripMenuItem.Click
+        ShowActiveFolders()
     End Sub
 End Class
