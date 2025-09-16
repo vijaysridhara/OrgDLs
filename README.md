@@ -1,4 +1,6 @@
 # Organize Download files
+## Release 0.1
+(Binary soon)
 ## Introduction
 You can now organize your download files in multiple ways. 
 1. Create New category, and select the file types that you want them to move in (Word Documents, Spreadsheets etc)
@@ -23,4 +25,5 @@ You can now organize your download files in multiple ways.
 <img width="509" height="341" alt="image" src="https://github.com/user-attachments/assets/e3bb5d16-2a8c-43c8-9d3d-57383de473ae" />
 
 If you have questions write under discussions. Modify as you want 
+
 Vijay Sridhara
