@@ -17,8 +17,7 @@ You can now organize your download files in multiple ways.
 9. You can choose "Verbose" for alerting you on every file that is moved
 ## Main Screen
 
-
-<img width="604" height="573" alt="image" src="https://github.com/user-attachments/assets/6c475b93-3b80-4527-93d8-af7812cab9d8" />
+<img width="604" height="573" alt="image" src="https://github.com/user-attachments/assets/bb994ed7-0763-4ae8-8af6-a50573301e77" />
 
 ## System tray message
 
