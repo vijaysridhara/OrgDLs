@@ -6,6 +6,8 @@ Public Class MainMonitor
     Dim lastNumber As Integer = 0
     Dim isFileCreated As Boolean
     Private catColl As New Dictionary(Of String, Category)
+    Dim TypesFileLoc As String = IO.Path.GetDirectoryName(Application.ExecutablePath) & "\filetypes.txt"
+    Private FileTypes As New Dictionary(Of String, String())
     Private Sub Button1_Click(sender As Object, e As EventArgs) Handles butDirectory.Click
         Dim fb As New FolderBrowserDialog
         fb.SelectedPath = txtPath.Text
@@ -128,6 +130,13 @@ Public Class MainMonitor
     End Sub
     Dim isFirstLoad As Boolean = True
     Private Sub MainMonitor_Load(sender As Object, e As EventArgs) Handles Me.Load
+        If LoadFileTypes() = False Then
+            MsgBox("Error loading file types. Exiting", MsgBoxStyle.Critical)
+            Application.Exit()
+            Exit Sub
+        End If
+
+        cboFileCat.Items.AddRange(FileTypes.Keys.ToArray)
         notIcon.Icon = Me.Icon
         notIcon.ContextMenuStrip = ctxMain
         chkVerbose.Checked = My.Settings.Verbose
@@ -136,6 +145,27 @@ Public Class MainMonitor
         ShowActiveFolders()
 
     End Sub
+    Private Function LoadFileTypes() As Boolean
+        Try
+            If IO.File.Exists(TypesFileLoc) = False Then
+                Return False
+            End If
+
+            Dim lines() As String = IO.File.ReadAllLines(TypesFileLoc)
+            For Each line As String In lines
+                Dim parts() As String = line.Split(":"c)
+                If parts.Length = 2 Then
+                    Dim category As String = parts(0).Trim()
+                    Dim extensions() As String = parts(1).Split(","c).Select(Function(s) s.Trim()).ToArray()
+                    FileTypes(category) = extensions
+                End If
+            Next
+            Return True
+        Catch ex As Exception
+            de(ex)
+            Return False
+        End Try
+    End Function
     Private Sub ShowActiveFolders()
         Dim txt As String = ""
         For Each c As Category In catColl.Values
@@ -240,7 +270,7 @@ Public Class MainMonitor
                     Log("Found category folder: " & d)
                 End If
                 Dim lseq As Integer = GetLastSeq(d)
-                Dim cat As New Category(d, lseq)
+                Dim cat As New Category(d, lseq, FileTypes)
                 cat.Name = IO.Path.GetFileName(d)
                 catColl.Add(cat.Name, cat)
                 AddHandler cat.CategoryMessage, AddressOf CatMessageARrived
@@ -344,7 +374,7 @@ startNaming:
                 GoTo startNaming
             End If
             MkDir(txtPath.Text & "\" & catName)
-            Dim cat As New Category(txtPath.Text & "\" & catName, 0)
+            Dim cat As New Category(txtPath.Text & "\" & catName, 0, FileTypes)
             cat.Name = catName
             cat.IsActive = True
             catColl.Add(cat.Name, cat)
@@ -571,7 +601,7 @@ startNaming:
     End Sub
 
     Private Sub tlstpNewCat_Click(sender As Object, e As EventArgs) Handles tlstpNewCat.Click
-        Dim nc As New NewCat(txtPath.Text, catColl)
+        Dim nc As New NewCat(txtPath.Text, FileTypes, catColl)
         If nc.ShowDialog = DialogResult.OK Then
             If chkVerbose.Checked Then
                 Log("Created new category and folder " & nc.NewCat.Name)

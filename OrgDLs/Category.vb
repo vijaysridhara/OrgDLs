@@ -14,6 +14,7 @@ Public Class Category
     Private _IsActive As Boolean = True
     Event SeqNumberChanged(cat As String, seq As Integer)
     Public INIT As Boolean
+    Dim globalTypes As Dictionary(Of String, String())
     Property IsActive As Boolean
         Get
             Return _IsActive
@@ -43,23 +44,32 @@ Public Class Category
         End Get
     End Property
     Private Sub SetAllowedTypes()
-        Select Case FileType
+        If globalTypes.ContainsKey(FileType) Then
+            AllowedTypes.AddRange(globalTypes(FileType))
 
-            Case "Any file"
-                AllowedTypes.Clear()
-            Case "Documents"
-                AllowedTypes.AddRange({".docx", ".docm", ".doc", ".rtf"})
-            Case "Spreadsheets"
-                AllowedTypes.AddRange({".xlsx", ".xlsm", ".xls"})
-            Case "PDF files"
-                AllowedTypes.AddRange({".pdf"})
-            Case "Image files"
-                AllowedTypes.AddRange({".jpg", ".jpeg", ".bmp", ".png", ".gif", ".webp", ".tiff"})
-            Case "Zip files"
-                AllowedTypes.AddRange({".zip", ".tar", ".war", ".gzip", ".7zip", ".bzip"})
-            Case "Executables"
-                AllowedTypes.AddRange({".exe", ".bat", ".dll"})
-        End Select
+        Else
+            AllowedTypes.Clear()
+        End If
+        If FileType = "Any file" Then 'This is coming as .* from file as a convention, so we to clear this.
+            AllowedTypes.Clear()
+        End If
+        'Select Case FileType
+
+        '    Case "Any file"
+        '        AllowedTypes.Clear()
+        '    Case "Documents"
+        '        AllowedTypes.AddRange({".docx", ".docm", ".doc", ".rtf"})
+        '    Case "Spreadsheets"
+        '        AllowedTypes.AddRange({".xlsx", ".xlsm", ".xls"})
+        '    Case "PDF files"
+        '        AllowedTypes.AddRange({".pdf"})
+        '    Case "Image files"
+        '        AllowedTypes.AddRange({".jpg", ".jpeg", ".bmp", ".png", ".gif", ".webp", ".tiff"})
+        '    Case "Zip files"
+        '        AllowedTypes.AddRange({".zip", ".tar", ".war", ".gzip", ".7zip", ".bzip"})
+        '    Case "Executables"
+        '        AllowedTypes.AddRange({".exe", ".bat", ".dll"})
+        'End Select
     End Sub
     Property Rename As Boolean
         Get
@@ -96,9 +106,10 @@ Public Class Category
             _UseTimeStamp = Value
         End Set
     End Property
-    Public Sub New(dirP As String, lastSeq As Integer)
+    Public Sub New(dirP As String, lastSeq As Integer, globTypes As Dictionary(Of String, String()))
         Me.DirPath = dirP
         Me.LastSeq = lastSeq
+        Me.globalTypes = globTypes
     End Sub
 
     Property LastSeq As Integer

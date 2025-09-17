@@ -39,7 +39,6 @@ Partial Class NewCat
         ' 
         cboFileCat.DropDownStyle = ComboBoxStyle.DropDownList
         cboFileCat.FormattingEnabled = True
-        cboFileCat.Items.AddRange(New Object() {"Any file", "Documents", "Executables", "Image files", "PDF files", "Spreadsheets", "Text files", "Zip files"})
         cboFileCat.Location = New Point(85, 93)
         cboFileCat.Name = "cboFileCat"
         cboFileCat.Size = New Size(277, 28)

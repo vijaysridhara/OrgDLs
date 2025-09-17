@@ -1,0 +1,13 @@
+Image files:.jpg,.jpeg,.png,.bmp,.gif,.tiff,.svg
+Adobe files:.ai,.psd
+Spreadsheets:.xls,.xlsx,.xlsm,.csv
+Documents:.doc,.docx,.rtf
+Text files:.txt
+Data files:.dat
+Presentations:.pptx,.ppt
+Movie files:.mpg,.mpeg,.mp4,.mov,.wmv
+Zip files:.rar,.war,.tar,.jar,.zip,.7zip,.gzip
+PDF files:.pdf
+Executables:.exe,.bat,.vbs,.dll,.ocx
+Code files:.java,.py,.c,.cpp,.h
+Any file:.*

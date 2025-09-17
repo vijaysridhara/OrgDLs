@@ -5,10 +5,13 @@
 
     End Sub
     Dim catCol As Dictionary(Of String, Category)
-    Public Sub New(pth As String, catColl As Dictionary(Of String, Category))
+    Dim globFtypes As Dictionary(Of String, String())
+    Public Sub New(pth As String, ftypes As Dictionary(Of String, String()), catColl As Dictionary(Of String, Category))
         InitializeComponent()
         catCol = catColl
         parPath = pth
+        globFtypes = ftypes
+        cboFileCat.Items.AddRange(ftypes.Keys.ToArray)
     End Sub
     Property NewCat As Category
         Get
@@ -48,8 +51,8 @@
     Private Sub butOK_Click(sender As Object, e As EventArgs) Handles butOK.Click
         If lblError.Text = "Category name is valid" Then
             Try
-                newCat = New Category(parPath, 0)
-                newCat.Name = txtCatName.Text
+                NewCat = New Category(parPath, 0, globFtypes)
+                NewCat.Name = txtCatName.Text
                 newCat.DirPath = parPath & "\" & txtCatName.Text
                 My.Computer.FileSystem.CreateDirectory(newCat.DirPath)
                 newCat.OverWrite = chkOverwritefiles.Checked
