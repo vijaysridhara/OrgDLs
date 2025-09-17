@@ -86,14 +86,14 @@ Public Class MainMonitor
                 If c.FileType <> "Any file" Or fext = ".tmp" Then Continue For
                 validExtensions = validExtensions.Union(c.AllowedTypes).ToArray
                 If IO.File.Exists(filepath) Then
-                    If chkVerbose.Checked Then msgQueue.Enqueue("File qualified for category " & c.Name & " for extension " & fext & " for file " & filepath & ". Processing...")
+                    If chkVerbose.Checked Then msgQueue.Enqueue("File qualified for active category " & c.Name & " for extension " & fext & " for file " & filepath & ". Processing...")
                     Threading.Thread.Sleep(500)
                     c.SaveFile(filepath)
                     isFileCreated = True
                     Exit Sub
                 End If
             Next
-            If chkVerbose.Checked Then msgQueue.Enqueue("No category qualified for extension " & fext & " for file " & filepath)
+            If chkVerbose.Checked Then msgQueue.Enqueue("No active category qualified for extension " & fext & " for file " & filepath)
         Catch ex As Exception
             msgQueue.Enqueue(ex.Message & "  " & filepath)
         End Try
