@@ -53,6 +53,7 @@ Partial Class MainMonitor
         ActiveCategoriesToolStripMenuItem = New ToolStripMenuItem()
         tlstpExit = New ToolStripMenuItem()
         butAbout = New Button()
+        butBackground = New Button()
         GroupBox1.SuspendLayout()
         ctxMain.SuspendLayout()
         SuspendLayout()
@@ -318,11 +319,22 @@ Partial Class MainMonitor
         butAbout.Text = "&About"
         butAbout.UseVisualStyleBackColor = True
         ' 
+        ' butBackground
+        ' 
+        butBackground.Location = New Point(252, 271)
+        butBackground.Name = "butBackground"
+        butBackground.Size = New Size(338, 28)
+        butBackground.TabIndex = 9
+        butBackground.Text = "Background process running.... click to stop"
+        butBackground.UseVisualStyleBackColor = True
+        butBackground.Visible = False
+        ' 
         ' MainMonitor
         ' 
         AutoScaleDimensions = New SizeF(8F, 20F)
         AutoScaleMode = AutoScaleMode.Font
         ClientSize = New Size(602, 541)
+        Controls.Add(butBackground)
         Controls.Add(GroupBox1)
         Controls.Add(chkVerbose)
         Controls.Add(chkStart)
@@ -376,5 +388,6 @@ Partial Class MainMonitor
     Friend WithEvents tlstpExit As ToolStripMenuItem
     Friend WithEvents ActiveCategoriesToolStripMenuItem As ToolStripMenuItem
     Friend WithEvents butAbout As Button
+    Friend WithEvents butBackground As Button
 
 End Class

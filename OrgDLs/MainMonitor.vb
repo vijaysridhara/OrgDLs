@@ -1,4 +1,5 @@
 ﻿Imports System.IO
+Imports System.Net.WebRequestMethods
 Imports System.Text.RegularExpressions
 
 Public Class MainMonitor
@@ -60,15 +61,31 @@ Public Class MainMonitor
             msgQueue.Enqueue(ex.Message & " " & e.FullPath)
         End Try
     End Sub
-    Private Sub CheckandProcessThisFile(filepath As String, fext As String, Optional force As Boolean = False)
+    Private Sub CheckandProcessThisFile(filepath As String, fext As String)
         Try
             Dim validExtensions() As String = {}
-            '''Check all categories
+            '''Check all categories except "Any file"
             For Each k As String In catColl.Keys
                 Dim c As Category = catColl(k)
-                If c.IsActive = False And force = False Then Continue For
+                If c.IsActive = False Then Continue For
+                If c.FileType = "Any file" Then Continue For
                 validExtensions = validExtensions.Union(c.AllowedTypes).ToArray
                 If (validExtensions.Contains(fext) Or validExtensions.Count = 0) And IO.File.Exists(filepath) And fext <> ".tmp" Then
+                    If chkVerbose.Checked Then msgQueue.Enqueue("File qualified for category " & c.Name & " for extension " & fext & " for file " & filepath & ". Processing...")
+                    Threading.Thread.Sleep(500)
+                    c.SaveFile(filepath)
+                    isFileCreated = True
+                    Exit Sub
+                End If
+            Next
+            '''Now check "Any file" category
+            '''this is to ensure that if a file matches other categories, it is not processed by "Any file" category
+            For Each k As String In catColl.Keys
+                Dim c As Category = catColl(k)
+                If c.IsActive = False Then Continue For
+                If c.FileType <> "Any file" Or fext = ".tmp" Then Continue For
+                validExtensions = validExtensions.Union(c.AllowedTypes).ToArray
+                If IO.File.Exists(filepath) Then
                     If chkVerbose.Checked Then msgQueue.Enqueue("File qualified for category " & c.Name & " for extension " & fext & " for file " & filepath & ". Processing...")
                     Threading.Thread.Sleep(500)
                     c.SaveFile(filepath)
@@ -306,20 +323,37 @@ Public Class MainMonitor
         Dim files() As String = IO.Directory.GetFiles(txtPath.Text, "*.*")
         If files.Length > 0 Then
             If MsgBox("There are " & files.Length & " files in the selected folder. They will be processed based on active categories", MsgBoxStyle.Question Or MsgBoxStyle.YesNo) = MsgBoxResult.No Then Exit Sub
-
-            'No force, get them into existing active categories
-            For Each fl As String In files
-                Dim ext As String = IO.Path.GetExtension(fl)
-                CheckandProcessThisFile(fl, ext.ToLower)
-            Next
-            files = IO.Directory.GetFiles(txtPath.Text, "*.*")
-            'Now force them to non active categories
-            For Each fl As String In files
-                Dim ext As String = IO.Path.GetExtension(fl)
-                CheckandProcessThisFile(fl, ext.ToLower, True)
-            Next
+            Dim proc As New Threading.Thread(AddressOf RunBatchProcess)
+            proc.IsBackground = True
+            butBackground.Show()
+            proc.Start()
         End If
 
+    End Sub
+    Dim IsBackGroundProcessing As Boolean = False
+    Private Sub RunBatchProcess()
+        Dim files() As String = IO.Directory.GetFiles(txtPath.Text, "*.*")
+        Dim cnt As Integer = files.Length
+        IsBackGroundProcessing = True
+        'No force, get them into existing active categories
+        For Each fl As String In files
+            If IsBackGroundProcessing = False Then
+                butBackground.Hide()
+                Exit For
+
+            End If
+            Dim ext As String = IO.Path.GetExtension(fl)
+            CheckandProcessThisFile(fl, ext.ToLower)
+        Next
+        files = IO.Directory.GetFiles(txtPath.Text, "*.*")
+        If files.Length > 0 Then
+            msgQueue.Enqueue("There are " & files.Length & "/" & cnt & " files remaining unprocessed in the monitored folder. The process is cancelled or they didn't match any category.")
+        Else
+            msgQueue.Enqueue("All " & cnt & " existing files processed")
+        End If
+
+        IsBackGroundProcessing = False
+        butBackground.Hide()
     End Sub
     Dim isMonitoring As Boolean = False
     Private Sub chkStart_CheckedChanged(sender As Object, e As EventArgs) Handles chkStart.CheckedChanged
@@ -663,5 +697,11 @@ startNaming:
     Private Sub butAbout_Click(sender As Object, e As EventArgs) Handles butAbout.Click
         Dim ab As New About
         ab.ShowDialog()
+    End Sub
+
+    Private Sub butBackground_Click(sender As Object, e As EventArgs) Handles butBackground.Click
+        If MsgBox("This will stop the background batch processing of existing files. Are you sure?", MsgBoxStyle.Question Or MsgBoxStyle.YesNo) = MsgBoxResult.No Then Exit Sub
+        IsBackGroundProcessing = False
+        butBackground.Hide()
     End Sub
 End Class
