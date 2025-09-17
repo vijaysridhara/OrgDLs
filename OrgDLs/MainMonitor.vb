@@ -304,7 +304,7 @@ Public Class MainMonitor
         End If
     End Sub
     Private Sub butExit_Click(sender As Object, e As EventArgs) Handles butExit.Click
-        StopMonitoring()
+
         Close()
     End Sub
 
