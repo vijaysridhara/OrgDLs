@@ -6,11 +6,20 @@
     <StartupObject>Sub Main</StartupObject>
     <UseWindowsForms>true</UseWindowsForms>
     <MyType>WindowsForms</MyType>
-    <Company>Vijay Sridhara</Company>
-    <Description>Organize your downloads perfectly well!</Description>
+    <Company>VijaySridhara.in</Company>
+    <Description>Organize your downloads perfectly well! Rename them with timestamp, or by a sequence number, or just move them to a folder as is. This is a opensource application on github: https://github.com/vijaysridhara/OrgDLs</Description>
     <Copyright>Vijay Sridhara</Copyright>
     <Version>0.1.0</Version>
+    <Authors>Vijay Sridhara</Authors>
+    <PackageProjectUrl>https://github.com/vijaysridhara/OrgDLs</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/vijaysridhara/OrgDLs</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <ApplicationIcon>Resources\appimage_256.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="Resources\appimage_256.ico" />
+  </ItemGroup>
 
   <ItemGroup>
     <Import Include="System.Data" />

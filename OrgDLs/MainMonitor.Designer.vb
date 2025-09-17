@@ -52,6 +52,7 @@ Partial Class MainMonitor
         tlstpStartStop = New ToolStripMenuItem()
         ActiveCategoriesToolStripMenuItem = New ToolStripMenuItem()
         tlstpExit = New ToolStripMenuItem()
+        butAbout = New Button()
         GroupBox1.SuspendLayout()
         ctxMain.SuspendLayout()
         SuspendLayout()
@@ -309,6 +310,15 @@ Partial Class MainMonitor
         tlstpExit.Size = New Size(164, 22)
         tlstpExit.Text = "E&xit"
         ' 
+        ' butAbout
+        ' 
+        butAbout.Location = New Point(16, 488)
+        butAbout.Name = "butAbout"
+        butAbout.Size = New Size(127, 48)
+        butAbout.TabIndex = 8
+        butAbout.Text = "&About"
+        butAbout.UseVisualStyleBackColor = True
+        ' 
         ' MainMonitor
         ' 
         AutoScaleDimensions = New SizeF(8F, 20F)
@@ -321,6 +331,7 @@ Partial Class MainMonitor
         Controls.Add(Label3)
         Controls.Add(txtLog)
         Controls.Add(txtPath)
+        Controls.Add(butAbout)
         Controls.Add(butExit)
         Controls.Add(butDirectory)
         Font = New Font("Segoe UI", 11.25F, FontStyle.Regular, GraphicsUnit.Point, CByte(0))
@@ -365,5 +376,6 @@ Partial Class MainMonitor
     Friend WithEvents tlstpStartStop As ToolStripMenuItem
     Friend WithEvents tlstpExit As ToolStripMenuItem
     Friend WithEvents ActiveCategoriesToolStripMenuItem As ToolStripMenuItem
+    Friend WithEvents butAbout As Button
 
 End Class

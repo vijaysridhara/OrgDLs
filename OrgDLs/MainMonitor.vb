@@ -305,7 +305,7 @@ Public Class MainMonitor
     End Sub
     Private Sub butExit_Click(sender As Object, e As EventArgs) Handles butExit.Click
         StopMonitoring()
-        Me.Close()
+        Close()
     End Sub
 
     Private Sub Timer1_Tick(sender As Object, e As EventArgs) Handles Timer1.Tick
@@ -623,5 +623,10 @@ startNaming:
 
     Private Sub ActiveCategoriesToolStripMenuItem_Click(sender As Object, e As EventArgs) Handles ActiveCategoriesToolStripMenuItem.Click
         ShowActiveFolders()
+    End Sub
+
+    Private Sub butAbout_Click(sender As Object, e As EventArgs) Handles butAbout.Click
+        Dim ab As New About
+        ab.ShowDialog()
     End Sub
 End Class
