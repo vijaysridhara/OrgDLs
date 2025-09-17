@@ -34,8 +34,10 @@ Public Class MainMonitor
             If cboCategories.Items.Count = 0 Then Exit Sub
             Dim srcPath As String = e.FullPath
             Dim fext As String = IO.Path.GetExtension(srcPath).ToLower
-
-            CheckandProcessthisFile(e.FullPath, fext)
+            If fext = ".tmp" Then Exit Sub 'Temporary files are crearted before renaming the file. 
+            'The call may come twice, once for .tmp and once for actual file. We will ignore .tmp files
+            ' and process only actual files
+            CheckandProcessThisFile(e.FullPath, fext)
 
             'Dim srcPath As String = e.FullPath
             'Threading.Thread.Sleep(500)
@@ -64,7 +66,7 @@ Public Class MainMonitor
                 Dim c As Category = catColl(k)
                 If c.IsActive = False And force = False Then Continue For
                 validExtensions = validExtensions.Union(c.AllowedTypes).ToArray
-                If (validExtensions.Contains(fext) Or validExtensions.Count = 0) And IO.File.Exists(filepath) Then
+                If (validExtensions.Contains(fext) Or validExtensions.Count = 0) And IO.File.Exists(filepath) And fext <> ".tmp" Then
                     If chkVerbose.Checked Then msgQueue.Enqueue("File qualified for category " & c.Name & " for extension " & fext & " for file " & filepath & ". Processing...")
                     Threading.Thread.Sleep(500)
                     c.SaveFile(filepath)
@@ -80,6 +82,8 @@ Public Class MainMonitor
     Private Sub StopMonitoring()
         If flW IsNot Nothing Then
             RemoveHandler flW.Created, AddressOf flW_Created
+            RemoveHandler flW.Error, AddressOf flw_Error
+            RemoveHandler flW.Renamed, AddressOf flW_Created
             flW.EnableRaisingEvents = False
             flW = Nothing
 
@@ -103,6 +107,7 @@ Public Class MainMonitor
             lastNumber = CInt(ttNumber.Text)
             AddHandler flW.Error, AddressOf flw_Error
             AddHandler flW.Created, AddressOf flW_Created
+            AddHandler flW.Renamed, AddressOf flW_Created
 
             Return True
         Else
@@ -321,7 +326,7 @@ Public Class MainMonitor
             Log(msgQueue.Dequeue)
         End While
         If String.IsNullOrEmpty(bubbleMessage) = False And chkVerbose.Checked Then
-            notIcon.BalloonTipTitle = "Cat: " & curCat.Name
+            notIcon.BalloonTipTitle = ""
             notIcon.BalloonTipText = bubbleMessage
             bubbleMessage = ""
             notIcon.ShowBalloonTip(3000)
