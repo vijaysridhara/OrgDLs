@@ -1,6 +1,10 @@
 # Organize Download files
-## Release 0.1
-(Binary soon)
+## Release 0.2
+###Features:
+     1. You can define your own file types and extensions (inside athe app folder FileTypes.txt)
+     2. Batch load of already downloaded files will be prompted. 
+     3. About form added
+     4. Click on Releases on the right to get the latest
 ## Introduction
 You can now organize your download files in multiple ways. 
 1. Create New category, and select the file types that you want them to move in (Word Documents, Spreadsheets etc)
