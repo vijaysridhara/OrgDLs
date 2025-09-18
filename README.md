@@ -4,7 +4,8 @@
      1. You can define your own file types and extensions (inside athe app folder FileTypes.txt)
      2. Batch load of already downloaded files will be prompted. 
      3. About form added
-     4. Click on Releases on the right to get the latest
+     4. Batch processing can be interrupted, and assigned a separate thread instead
+     5. Click on Releases on the right to get the latest
 ## Introduction
 You can now organize your download files in multiple ways. 
 1. Create New category, and select the file types that you want them to move in (Word Documents, Spreadsheets etc)
