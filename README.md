@@ -1,6 +1,6 @@
 # Organize Download files
 ## Release 0.2
-###Features:
+### Features:
      1. You can define your own file types and extensions (inside athe app folder FileTypes.txt)
      2. Batch load of already downloaded files will be prompted. 
      3. About form added
